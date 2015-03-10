@@ -1,0 +1,180 @@
+void VisualGeometryObject::УстановитьФорматВершинИнфовекторов()
+{
+
+	TechniqueInfovectors= fx->GetTechniqueByName("InfovecTech");
+
+	D3D10_INPUT_ELEMENT_DESC vertexformat[] = //массив элементов, описывающих вершину
+	{
+
+	// 1) Имя семантики в шейдере, 2) индекс семантики, 3) формат компонента вершины (Position - vector3f  [3*float = 3*32 bits = 12 bytes]), 
+	// 4) слот (индекс слота) через к-ый будет передаваться данный компонент вершины (всего 16 слотов с индексами 0-15), 
+	// 5) смещение в байтах для данного компонента вершины (от начала массива до начала данного компонента вершины)
+		
+		//   1       2           3                      4  5
+		{"POSITION", 2, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,   D3D10_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR",    2, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 3*4, D3D10_INPUT_PER_VERTEX_DATA, 0},
+
+	};
+
+
+
+	D3D10_PASS_DESC PassDesc;
+
+	
+	TechniqueInfovectors->GetPassByIndex(0)->GetDesc(&PassDesc);
+	d3dDevice->CreateInputLayout(vertexformat, 2, PassDesc.pIAInputSignature, PassDesc.IAInputSignatureSize, &VertexLayoutInfovectors);
+
+}
+
+
+void VisualGeometryObject::СоздатьИнфовекторы(const vector<VertexPosColor>* vertices, const vector<DWORD>* indices)
+{
+
+NumInfovectorsVertices= vertices->size();
+
+
+D3D10_BUFFER_DESC vbdesc;
+
+	vbdesc.ByteWidth= sizeof(VertexPosColor)*NumInfovectorsVertices;
+	//vbdesc.Usage= D3D10_USAGE_IMMUTABLE;
+	vbdesc.Usage= D3D10_USAGE_DYNAMIC;
+	vbdesc.BindFlags= D3D10_BIND_VERTEX_BUFFER;
+	//vbdesc.CPUAccessFlags= 0;
+	vbdesc.CPUAccessFlags= D3D10_CPU_ACCESS_WRITE;
+	vbdesc.MiscFlags= 0;
+
+	D3D10_SUBRESOURCE_DATA vsbd;
+	vsbd.pSysMem= &((*vertices)[0]);
+	d3dDevice->CreateBuffer(&vbdesc, &vsbd, &VB_infovectors);
+
+
+
+D3D10_BUFFER_DESC ibdesc;
+
+	ibdesc.ByteWidth= sizeof(DWORD)*NumInfovectorsVertices;
+	ibdesc.Usage= D3D10_USAGE_IMMUTABLE;
+	ibdesc.BindFlags= D3D10_BIND_INDEX_BUFFER;
+	ibdesc.CPUAccessFlags= 0;
+	ibdesc.MiscFlags= 0;
+
+	D3D10_SUBRESOURCE_DATA isbd;
+
+	isbd.pSysMem= &((*indices)[0]);
+	d3dDevice->CreateBuffer(&ibdesc, &isbd, &IB_infovectors);
+
+
+}
+
+
+
+//void VisualGeometryObject::ОтобразитьИнфовекторы(const vector<VertexPosColor>* vertices)
+//void VisualGeometryObject::ОтобразитьИнфовекторы(const D3DXVECTOR3 vector, const D3DXMATRIX m)
+void VisualGeometryObject::ОтобразитьИнфовекторы(const vector<VertexPosColor>& vectors, const D3DXMATRIX m)
+{
+
+	
+	D3DXVECTOR3 v3(2, 2, 2), vOut;
+
+	D3DXMATRIX m44;
+
+	float s= (float)1/2;
+
+	D3DXMatrixIdentity(&m44);
+
+	m44._11*= s;	m44._22*= s;	m44._33*= s;
+	m44._41= 1;		m44._42= 1;		m44._43= 1;
+
+
+	vOut= Vec3TransformAsPoint(v3, m44);
+	
+	
+	//Обновляем вершинный буфер инфовекторов
+
+		VertexPosColor* v= 0;
+
+		
+
+
+	//VB_infovectors->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**) &((*vertices)[0]));
+	VB_infovectors->Map(D3D10_MAP_WRITE_DISCARD, 0, (void**) &v);
+
+	
+		for(DWORD i= 0; i < vectors.size(); i++)
+		{
+		
+			//v[i].pos= Vec3TransformAsPoint(vectors[i].pos, m);
+			v[i].pos= vectors[i].pos;
+			v[i].color= vectors[i].color;
+		
+		}
+
+		/*v[0].pos= vectors[0].pos;
+		v[0].color= vectors[0].color;
+
+		v[1].pos= vectors[1].pos;
+		v[1].color= vectors[1].color;
+
+		v[2].pos= vectors[2].pos;
+		v[2].color= vectors[2].color;
+		
+		v[3].pos= vectors[3].pos;
+		v[3].color= vectors[3].color;*/
+
+
+	VB_infovectors->Unmap();
+	
+	
+	// Restore default states, input layout and primitive topology we can restore the default states by passing null
+
+	d3dDevice->OMSetDepthStencilState(0, 0);
+	float blendFactors[] = {0.0f, 0.0f, 0.0f, 0.0f};
+	d3dDevice->OMSetBlendState(0, blendFactors, 0xffffffff);
+	d3dDevice->IASetInputLayout(VertexLayoutInfovectors);
+	//d3dDevice->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+	d3dDevice->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINELIST);
+
+
+	//LWVP= ScaleMatrix*View;
+	//LWVP= View;
+
+	fxLWVP->SetMatrix((float*)&LWVP);
+
+	//------------------- Отрисовка -- DrawIndexed() ---------------------//
+
+
+	UINT stride= sizeof(VertexPosColor); // массив страйдов для каждого ВБ, где значение элемента равно
+										 // размеру в байтах элемента соответствующего вершинного буфера;
+									 	 // если ВБ один, то массив страйдов вырождается до скаляра;
+										 // в метод передаётся указатель на первый элемент массива страйдов
+
+	UINT offset= 0; // массив смещений для каждого ВБ, где значение элемента равно
+					// размеру смещения в байтах от начала соответствующего вершинного буфера;
+					// если ВБ один, то массив смещений вырождается до скаляра;
+					// в метод передаётся указатель на первый элемент массива офсетов;
+
+					// смещение - количество байт от начала ВБ до элемента, с которого сборщик (IA) начнёт читать данные;
+					// имеет смысл тогда, когда одним ВБ задаётся сразу несколько объектов, тогда для каждого нужно задать смещение
+
+
+	D3D10_TECHNIQUE_DESC d3dtechdesc;
+
+	TechniqueInfovectors->GetDesc(&d3dtechdesc);
+
+    for(UINT i = 0; i < d3dtechdesc.Passes; ++i)
+    {
+
+        //ID3D10EffectPass* pass = mTech->GetPassByIndex(i);
+		
+		TechniqueInfovectors->GetPassByIndex( i )->Apply(0); // Передаём установленные выше значения в соответсвующие константные буферы шейдера
+
+		d3dDevice->IASetVertexBuffers(0, 1, &VB_infovectors, &stride, &offset);
+		d3dDevice->IASetIndexBuffer(IB_infovectors, DXGI_FORMAT_R32_UINT, 0); // DXGI_FORMAT_R32_UINT - т.к. для индексов был использован тип DWORD
+
+		d3dDevice->DrawIndexed(NumInfovectorsVertices, 0, 0);
+
+    }
+
+	
+
+}

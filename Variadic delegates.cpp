@@ -1,0 +1,1 @@
+//#include "Variadic delegates.h"

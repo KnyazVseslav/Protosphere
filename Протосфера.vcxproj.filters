@@ -1,0 +1,215 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{93df1a79-f9f6-422d-9ce2-a31044ed1c39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources\meshes">
+      <UniqueIdentifier>{58611424-32c6-4b0f-90dc-1ac513286daa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources\textures">
+      <UniqueIdentifier>{754ec77e-f05d-4da1-9fb8-c62013128fc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{6634801d-d58b-4ffb-aee1-f9c665745c98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders\HLSL">
+      <UniqueIdentifier>{225e6b11-94a5-45fa-8dde-513c16ef679b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders\FX">
+      <UniqueIdentifier>{9cbbef5c-da2c-4ec0-ba0a-1b65f6ec3737}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IncludeHLSL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="map_vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MathFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="query.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Протосфера.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\значки\Resource.h">
+      <Filter>Header Files\Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Variadic delegates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry_Classes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DApplication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameTimer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IncludeHLSL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MathFunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Протосфера.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry_Classes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\meshes\audi avus.3DS">
+      <Filter>resources\meshes</Filter>
+    </None>
+    <None Include="resources\meshes\npc.3DS">
+      <Filter>resources\meshes</Filter>
+    </None>
+    <None Include="resources\meshes\Plane (4 vertices, x0, y1, z1).3DS">
+      <Filter>resources\meshes</Filter>
+    </None>
+    <None Include="resources\meshes\Protosphere.3DS">
+      <Filter>resources\meshes</Filter>
+    </None>
+    <None Include="resources\meshes\Sun.3DS">
+      <Filter>resources\meshes</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\cloth.DDS">
+      <Filter>resources\textures</Filter>
+    </Image>
+    <Image Include="resources\textures\defaultspec.DDS">
+      <Filter>resources\textures</Filter>
+    </Image>
+    <Image Include="resources\textures\grass.DDS">
+      <Filter>resources\textures</Filter>
+    </Image>
+    <Image Include="resources\textures\Protosphere.DDS">
+      <Filter>resources\textures</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\HLSL\build_depthmap_PS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\build_depthmap_VS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\draw_depthmap_PS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\draw_depthmap_VS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\infovectors_PS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\infovectors_VS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\lighthelper.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\render_PS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\HLSL\render_VS.hlsl">
+      <Filter>shaders\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\FX\InfoVectors.fx">
+      <Filter>shaders\FX</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\FX\lighthelper.fx">
+      <Filter>shaders\FX</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\FX\tex.fx">
+      <Filter>shaders\FX</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\значки\Протосфера.rc">
+      <Filter>Header Files\Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
