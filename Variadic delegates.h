@@ -42,22 +42,6 @@ namespace delegates
 
 	};
 
-
-
-	template<class... Args>
-	class PArguments
-	{
-	public:
-
-		std::tuple<Args*...> p_args;
-
-
-		PArguments(Args*... ptr_args) : p_args(std::forward<ArgsToBind>(args)...) {}
-
-	};
-
-
-
 	class IDelegateData abstract
     { 
     public: 
