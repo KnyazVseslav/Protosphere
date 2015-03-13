@@ -34,10 +34,11 @@ namespace delegates
 	{
 	public:
 
-		std::tuple<Args...> args;
+        Arguments(Args&&... _args) : args(std::forward_as_tuple(std::forward<Args>(_args)...)) {}
 
-
-		Arguments(Args... _args) : args(_args...) {}
+    public:
+        
+        std::tuple<Args&&...> args;
 
 	};
 
@@ -51,13 +52,19 @@ namespace delegates
 		std::tuple<Args*...> p_args;
 
 
-		PArguments(Args*... ptr_args) : p_args(ptr_args...) {}
+		PArguments(Args*... ptr_args) : p_args(std::forward<ArgsToBind>(args)...) {}
 
 	};
 
 
 
-	class IDelegateData{ public: virtual void call(void*) = 0; virtual void call_with_bound_args() = 0; };
+	class IDelegateData abstract
+    { 
+    public: 
+        virtual void call(void*) abstract; 
+            virtual void call_with_bound_args() abstract;
+         virtual void bind_args(void*) abstract;
+    };
 
 
 	template<class...Args> class DelegateData : public IDelegateData {};
@@ -91,32 +98,35 @@ namespace delegates
 			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), p_args);
 		}
 
+        virtual void bind_args(void* argsToBind) override
+        {
+            if (argsToBind != m_bound_args)
+            {
+                delete m_bound_args;
+                m_bound_args = argsToBind;
+            }
+        }
+
 	private:
 
 		O* pObj;
 		M method;
 
-		void* bound_ptr_args;
-		void* bound_ref_args;
+        void* m_bound_args;
 
 
 	public:
 
 
-		template<class...PtrArgsToBind>
-		DelegateData(O* ptrObj, M _method, PtrArgsToBind*... ptr_args)
-			: pObj(ptrObj), method(_method), bound_ptr_args(new PArguments<PtrArgsToBind...>(ptr_args...)) {}
+		template<class...ArgsToBind>
+        DelegateData(O* ptrObj, M _method, ArgsToBind&&... argsToBind)
+            : pObj(ptrObj), method(_method), m_bound_args(new Arguments<ArgsToBind&&...>(std::forward<ArgsToBind>(argsToBind)...)) {}
 
-		template<int...Idcs>
-		void dereferencing_invoker(Indices<Idcs...>, void* p_args)
-		{
-			(pObj->*method)(*std::get<Idcs>(static_cast<PArguments<Args...>*>(p_args)->p_args)...);
-		}
 
 
 		void call_with_bound_args() override
 		{
-			dereferencing_invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), bound_ptr_args);
+			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), m_bound_args);
 		}
 
 
@@ -152,32 +162,32 @@ namespace delegates
 			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), p_args);
 		}
 
+        virtual void bind_args(void* argsToBind) override
+        {
+            if (argsToBind != m_bound_args)
+            {
+                delete m_bound_args;
+                m_bound_args = argsToBind;
+            }
+        }
+
 
 	private:
 
 		F pF;
 
-		void* bound_ptr_args;
-		void* bound_ref_args;
-
+        void* m_bound_args;
 
 	public:
 
 
-		template<class...PtrArgsToBind>
-		DelegateData(F ptrF, PtrArgsToBind*... ptr_args)
-			: pF(ptrF), bound_ptr_args(new PArguments<PtrArgsToBind...>(ptr_args...)) {}
-
-		template<int...Idcs>
-		void dereferencing_invoker(Indices<Idcs...>, void* p_args)
-		{
-			pF(*std::get<Idcs>(static_cast<PArguments<Args...>*>(p_args)->p_args)...);
-		}
-
+		template<class...ArgsToBind>
+        DelegateData(F ptrF, ArgsToBind&&... argsToBind)
+            : pF(ptrF), m_bound_args(new Arguments<ArgsToBind&&...>(std::forward<ArgsToBind>(argsToBind)...)) {}
 
 		void call_with_bound_args() override
 		{
-			dereferencing_invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), bound_ptr_args);
+			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), m_bound_args);
 		}
 
 
@@ -205,10 +215,10 @@ namespace delegates
 			bind(pObj, M);
 		}
 
-		template<class R, class O, class...Args, class...PtrArgsToBind>
-		explicit Delegate(std::string _name, O* pObj, R(O::*M)(Args...), PtrArgsToBind... ptr_args) : name(_name)
+		template<class R, class O, class...Args, class...ArgsToBind>
+		explicit Delegate(std::string _name, O* pObj, R(O::*M)(Args...), ArgsToBind&&... argsToBind) : name(_name)
 		{
-			bind(pObj, M, ptr_args...);
+            bind(pObj, M, std::forward<ArgsToBind>(argsToBind)...);
 		}
 
 		template<class R, class O, class...Args>
@@ -238,24 +248,24 @@ namespace delegates
 		// С привязкой аргументов
 		//
 
-		template<class R, class O, class...Args, class...PtrArgsToBind>
-		static Delegate Make(std::string name, O* pObj, R(O::*M)(Args...), PtrArgsToBind... ptr_args)
+		template<class R, class O, class...Args, class...ArgsToBind>
+        static Delegate Make(std::string name, O* pObj, R(O::*M)(Args...), ArgsToBind&&... argsToBind)
 		{
 			Delegate d(name);
 
-			d.bind(pObj, M, ptr_args...);
+            d.bind(pObj, M, std::forward<ArgsToBind>(argsToBind)...);
 
 			return d;
 		}
 
 
 		// создать с именем поумолчанию
-		template<class R, class O, class...Args, class...PtrArgsToBind>
-		static Delegate Make(O* pObj, R(O::*M)(Args...), PtrArgsToBind... ptr_args)
+		template<class R, class O, class...Args, class...ArgsToBind>
+        static Delegate Make(O* pObj, R(O::*M)(Args...), ArgsToBind&&... argsToBind)
 		{
 			Delegate d("");
 
-			d.bind(pObj, M, ptr_args...);
+            d.bind(pObj, M, std::forward<ArgsToBind>(argsToBind)...);
 
 			return d;
 		}
@@ -296,29 +306,27 @@ namespace delegates
 		// С привязкой аргументов
 		//
 
-		template<class R, class...Args, class...PtrArgsToBind>
-		static Delegate Make(std::string name, R(*F)(Args...), PtrArgsToBind...ptr_args)
+		template<class R, class...Args, class...ArgsToBind>
+        static Delegate Make(std::string name, R(*F)(Args...), ArgsToBind&&... argsToBind)
 		{
 			Delegate d(name);
 
-			d.bind(F, ptr_args...);
+            d.bind(F, std::forward<ArgsToBind>(argsToBind)...);
 
 			return d;
 		}
 
 		//создать с именем поумолчанию
-		template<class R, class...Args, class...PtrArgsToBind>
-		static Delegate Make(R(*F)(Args...), PtrArgsToBind...ptr_args)
+		template<class R, class...Args, class...ArgsToBind>
+        static Delegate Make(R(*F)(Args...), ArgsToBind&&... argsToBind)
 		{
 			Delegate d(string(""));
 
-			d.bind(F, ptr_args...);
+            d.bind(F, std::forward<ArgsToBind>(argsToBind)...);
 
 			return d;
 		}
 
-
-	public:
 
 		// Для методов
 
@@ -328,10 +336,10 @@ namespace delegates
 			idata = new DelegateData<R, O, R(Args...)>(pObj, M);
 		}
 
-		template<class R, class O, class...Args, class...PtrArgsToBind>
-		void bind(O* pObj, R(O::*M)(Args...), PtrArgsToBind... ptr_args)
+		template<class R, class O, class...Args, class...ArgsToBind>
+        void bind(O* pObj, R(O::*M)(Args...), ArgsToBind&&... argsToBind)
 		{
-			idata = new DelegateData<R, O, R(Args...)>(pObj, M, ptr_args...);
+            idata = new DelegateData<R, O, R(Args...)>(pObj, M, std::forward<ArgsToBind>(argsToBind)...);
 		}
 
 
@@ -344,14 +352,15 @@ namespace delegates
 			idata = new DelegateData<R, R(*)(Args...)>(F);
 		}
 
-		template<class R, class...Args, class...PtrArgsToBind>
-		void bind(R(*F)(Args...), PtrArgsToBind...ptr_args)
+		template<class R, class...Args, class...ArgsToBind>
+		void bind(R(*F)(Args...), ArgsToBind&&... args)
 		{
-			idata = new DelegateData<R, R(*)(Args...)>(F, ptr_args...);
+			idata = new DelegateData<R, R(*)(Args...)>(F, std::forward<ArgsToBind>(args)...);
 		}
 
-
-		// Методы вызова делегатов
+        //
+        // Общие методы
+        //
 
 		template<class...Args>
 		void operator()(Args... args)
@@ -365,7 +374,13 @@ namespace delegates
 		}
 
 
-	public:
+        template<class... Args>
+        void bind_args(Args&&... args)
+        {
+            idata->bind_args(new Arguments<Args...>(std::forward<args>(args)...));
+        }
+
+
 
 		std::string get_name()
 		{
@@ -375,9 +390,10 @@ namespace delegates
 
 	private:
 
-		IDelegateData* idata;
-
-		std::string name;
+        std::string name;
+        IDelegateData* idata;
+        void* m_bound_args;
+		
 
 
 	};
@@ -402,10 +418,10 @@ namespace delegates
 			names.push_back(delegates.front().get_name());
 		}
 
-		template<class...Args, class...PtrArgsToBind>
-		void add(Args&&... args, PtrArgsToBind... ptr_args)
+		template<class...Args, class... ArgsToBind>
+		void add(Args&&... args, ArgsToBind&&... argsToBind)
 		{
-			delegates.emplace_back(std::forward<Args>(args)..., ptr_args...);
+            delegates.emplace_back(std::forward<Args>(args)..., std::forward<ArgsToBind>(argsToBind)...);
 
 			names.push_back(delegates.front().get_name());
 		}

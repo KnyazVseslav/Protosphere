@@ -291,7 +291,7 @@ void Application::InitScene()
         // callback-функции (выполн€ютс€ до рендера и после него)
 
         DepthMapBuildFX.AddBeginFunction("OMbind_DSV_nullRTV_VP", scene::shadow_mapping::depthMap, &ShadowMap::OMbind_DSV_nullRTV_VP);
-        DepthMapBuildFX.AddEndFunction("Reset_RTV_DSV_VP", d3d, &D3D::Reset_RTV_DSV_VP, &ClientWidth, &ClientHeight);
+        DepthMapBuildFX.AddEndFunction("Reset_RTV_DSV_VP", d3d, &D3D::Reset_RTV_DSV_VP, ClientWidth, ClientHeight);
 
 
 
