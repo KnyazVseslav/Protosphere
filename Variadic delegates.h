@@ -70,16 +70,16 @@ namespace delegates
 			(pObj->*method)(args...);
 		}
 
+        void call(void* p_args) override
+        {
+            invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), p_args);
+        }
 
 		template<int...Idcs>
 		void invoker(Indices<Idcs...>, void* p_args)
 		{
-			(pObj->*method)(std::get<Idcs>(static_cast<Arguments<Args...>*>(p_args)->args)...);
-		}
-
-		void call(void* p_args) override
-		{
-			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), p_args);
+            auto pArguments = static_cast<Arguments<Args...>*>(p_args);
+			(pObj->*method)(std::get<Idcs>(pArguments->args)...);
 		}
 
         virtual void bind_args(void* argsToBind) override
@@ -101,22 +101,18 @@ namespace delegates
 
 	public:
 
-
 		template<class...ArgsToBind>
-        DelegateData(O* ptrObj, M _method, ArgsToBind&&... argsToBind)
-            : pObj(ptrObj), method(_method), m_bound_args(new Arguments<ArgsToBind&&...>(std::forward<ArgsToBind>(argsToBind)...)) {}
-
-
+        DelegateData(O* ptrObj, M _method, ArgsToBind&&... argsToBind): pObj(ptrObj), method(_method) 
+        {
+            bind_args(new Arguments<ArgsToBind&&...>(std::forward<ArgsToBind>(argsToBind)...));
+        }
 
 		void call_with_bound_args() override
 		{
 			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), m_bound_args);
 		}
 
-
-
 	};
-
 
 
 	// Данные для функций
@@ -135,16 +131,17 @@ namespace delegates
 			pF(args...);
 		}
 
-		template<int...Idcs>
-		void invoker(Indices<Idcs...>, void* p_args)
-		{
-			pF(std::get<Idcs>(static_cast<Arguments<Args...>*>(p_args)->args)...);
-		}
-
 		void call(void* p_args) override
 		{
 			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), p_args);
 		}
+
+        template<int...Idcs>
+        void invoker(Indices<Idcs...>, void* p_args)
+        {
+            auto pArguments = static_cast<Arguments<Args...>*>(p_args);
+            pF(std::get<Idcs>(pArguments->args)...);
+        }
 
         virtual void bind_args(void* argsToBind) override
         {
@@ -164,16 +161,16 @@ namespace delegates
 
 	public:
 
-
 		template<class...ArgsToBind>
-        DelegateData(F ptrF, ArgsToBind&&... argsToBind)
-            : pF(ptrF), m_bound_args(new Arguments<ArgsToBind&&...>(std::forward<ArgsToBind>(argsToBind)...)) {}
+        DelegateData(F ptrF, ArgsToBind&&... argsToBind): pF(ptrF)
+        {
+            bind_args(new Arguments<ArgsToBind&&...>(std::forward<ArgsToBind>(argsToBind)...));
+        }
 
 		void call_with_bound_args() override
 		{
 			invoker(typename IndicesBuilder<sizeof...(Args)>::indices(), m_bound_args);
 		}
-
 
 	};
 
@@ -376,9 +373,6 @@ namespace delegates
 
         std::string name;
         IDelegateData* idata;
-        void* m_bound_args;
-		
-
 
 	};
 
