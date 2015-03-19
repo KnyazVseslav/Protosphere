@@ -67,7 +67,7 @@ namespace delegates
 		template<class...Args>
 		void operator()(Args... args)
 		{
-			(pObj->*method)(args...);
+            (pObj->*method)(std::forward<Args>(args)...);
 		}
 
         void call(void* p_args) override
@@ -260,6 +260,20 @@ namespace delegates
 		//
 		*/
 
+
+        template<class R, class...Args>
+        explicit Delegate(std::string _name, R(*F)(Args...)) : name(_name)
+        {
+            bind(F);
+        }
+
+        template<class R, class...Args, class...ArgsToBind>
+        explicit Delegate(std::string _name, R(*F)(Args...), ArgsToBind&&... argsToBind) : name(_name)
+        {
+            bind(F, std::forward<ArgsToBind>(argsToBind)...);
+        }
+
+
 		template<class R, class...Args>
 		static Delegate Make(std::string name, R(*F)(Args...))
 		{
@@ -309,8 +323,6 @@ namespace delegates
 		}
 
 
-		// Для методов
-
 		template<class R, class O, class...Args>
 		void bind(O* pObj, R(O::*M)(Args...))
 		{
@@ -322,10 +334,6 @@ namespace delegates
 		{
             idata = new DelegateData<R, O, R(Args...)>(pObj, M, std::forward<ArgsToBind>(argsToBind)...);
 		}
-
-
-
-		// Для функций
 
 		template<class R, class...Args>
 		void bind(R(*F)(Args...))
@@ -346,7 +354,7 @@ namespace delegates
 		template<class...Args>
 		void operator()(Args... args)
 		{
-			idata->call(new Arguments<Args...>(args...));
+            idata->call(new Arguments<Args...>(std::forward<Args>(args)...));
 		}
 
 		void call_with_bound_args()
@@ -358,7 +366,7 @@ namespace delegates
         template<class... Args>
         void bind_args(Args&&... args)
         {
-            idata->bind_args(new Arguments<Args...>(std::forward<args>(args)...));
+            idata->bind_args(new Arguments<Args...>(std::forward<Args>(args)...));
         }
 
 
