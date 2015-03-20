@@ -395,9 +395,9 @@ namespace delegates
 
 
 		template<class...Args>
-		void add(Args&&... args)
+        void add(Args&&... delegateCtorArgs)
 		{
-			m_delegates.emplace_back(std::forward<Args>(args)...);
+            m_delegates.emplace_back(std::forward<Args>(delegateCtorArgs)...);
 
 			m_names.push_back(m_delegates.front().get_name());
 		}
