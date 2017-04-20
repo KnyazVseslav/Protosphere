@@ -1,10 +1,6 @@
 
 #pragma pack_matrix(row_major)
 
-
-
-
-
 cbuffer cbPerScene         :  register(b0)
 {
 	float4x4 WV;
@@ -13,7 +9,6 @@ cbuffer cbPerScene         :  register(b0)
 	float4x4 LightWVP; // for shadow mapping
 	
 };
-
 
 cbuffer cbPerObject       :  register(b1)
 {
@@ -25,7 +20,6 @@ cbuffer cbPerObject       :  register(b1)
 
 	//float4x4 LightWVP; // for shadow mapping
 };
-
 
 
 struct VS_IN
@@ -46,7 +40,6 @@ struct VS_OUT
 
 	float4 PointInLS_H : TEXCOORD1; // for shadow mapping
 };
-
 
 
 VS_OUT VS(VS_IN vIn)
@@ -76,7 +69,7 @@ VS_OUT VS(VS_IN vIn)
 	 // задающую видовой объём и проектирующую точки на его проекционное окно
 	 vOut.PointInLS_H = mul(vIn.posL, LightWVP); // После этого координата w каждой точки будет равна исходной (не изменённой проекционной матрицей)
 												 // координате z этой же точки - далее она потребуется для перспективного деления для нормализации
-												 // координат точек (для перехода NDC-пространству), т.е. координаты будут в диапазонах значений:
+												 // координат точек (для перехода к NDC-пространству), т.е. координаты будут в диапазонах значений:
 												 // -1 <= x' <= 1 ; -1 <= y' <= 1 ; 0 <= z' <= 1
 
 
@@ -107,7 +100,6 @@ VS_OUT VS(VS_IN vIn)
 	 */
 
 	 return vOut;
-
 }
 
 

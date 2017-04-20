@@ -1,5 +1,39 @@
 #include "D3D.h"
 
+std::vector<IDXGIAdapter*> GetAdapters(IDXGIFactory* dxgiFactory, std::vector<DXGI_ADAPTER_DESC>& adaptersDescriptions)
+{
+	std::vector<IDXGIAdapter*> adapters;
+	auto push_back_adapter = [&adapters](int idx) // позволяет передавать i-й элемент вектора для заполнения его адаптером 
+	{
+		adapters.resize(idx + 1);
+		return &adapters[idx];
+	};
+
+	for (int idx = 0; dxgiFactory->EnumAdapters(idx, push_back_adapter(idx)) != DXGI_ERROR_NOT_FOUND; ++idx)
+	{
+		adaptersDescriptions.resize(idx + 1);
+		adapters[idx]->GetDesc(&adaptersDescriptions[idx]);
+	}
+
+	adapters.pop_back();
+
+	return adapters;
+}
+
+int GetArrayIdxByStr(std::vector<DXGI_ADAPTER_DESC> adaptersDescriptions, std::wstring searchStr)
+{
+	size_t idx = std::string::npos;
+
+	for (const auto& desc : adaptersDescriptions)
+	{
+		std::wstring vendorStr = desc.Description;
+		if (idx = vendorStr.find(searchStr) != std::string::npos)
+			return idx;
+	}
+
+	return idx;
+}
+
 void D3D::CreateDeviceAndSwapChain(HWND RenderWindow,
 									vector<D3D_FEATURE_LEVEL> feature_levels,
 									BOOL Windowed,
@@ -45,17 +79,30 @@ void D3D::CreateDeviceAndSwapChain(HWND RenderWindow,
 	swcdesc.Flags= FullScreenFlags;
 	
 	
+	HRESULT hr;
 	if(feature_levels.size() != 0)
 	{
+		IDXGIFactory* dxgiFactory;
+		CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory));
+		std::vector<DXGI_ADAPTER_DESC> adaptersDescriptions;
+		std::vector<IDXGIAdapter*> adapters = GetAdapters(dxgiFactory, adaptersDescriptions);
+		std::wstring searchStr = L"AMD";
+		int renderAdapterIdx = GetArrayIdxByStr(adaptersDescriptions, searchStr);
 
-	  HR(D3D11CreateDeviceAndSwapChain(DisplayAdapter, DriverType, Software, ReleaseDebugFlags, &feature_levels[0], feature_levels.size(), 
-	             SDKVersion, &swcdesc, &SwapChain, &Device, &feature_level, &DeviceContext));	  
+ 	 /* HR(D3D11CreateDeviceAndSwapChain(DisplayAdapter, DriverType, Software, ReleaseDebugFlags, &feature_levels[0], feature_levels.size(), 
+ 	             SDKVersion, &swcdesc, &SwapChain, &Device, &feature_level, &DeviceContext));	  
+				 */
+		HR(D3D11CreateDeviceAndSwapChain(0, DriverType, Software, 0, &feature_levels[0], feature_levels.size(),
+			SDKVersion, &swcdesc, &SwapChain, &Device, &feature_level, &DeviceContext));
+
+		//hr = D3D11CreateDeviceAndSwapChain(adapters[renderAdapterIdx], DriverType, Software, 0, &feature_levels[0], feature_levels.size(),
+			//			SDKVersion, &swcdesc, &SwapChain, &Device, &feature_level, &DeviceContext);
 
 	}
 	   else 
 	   {
 
-			HR(D3D11CreateDeviceAndSwapChain(DisplayAdapter, DriverType, Software, ReleaseDebugFlags, &feature_levels_array[0], 
+			HR(D3D11CreateDeviceAndSwapChain(DisplayAdapter, DriverType, Software, 0, &feature_levels_array[0], 
 			          feature_levels_array.size(), SDKVersion, &swcdesc, &SwapChain, &Device, &feature_level, &DeviceContext));		
 
 	   }
@@ -240,9 +287,6 @@ void D3D::Initialize(	HWND RenderWindow,
 							     Scaling, MultisamplingCount, MultisamplingQuality, BufferUsage, BufferCount, SwapEffect, FullScreenFlags);
 
 	
-
-	
-
 	
 	//-------------------------Создаём render target view для заднего буфера цепи перестановок (для бекбуфера)
 

@@ -596,6 +596,12 @@ namespace effects
 
         }
 
+		void Texture2D::init(ID3D11ShaderResourceView* SRV, const Specification& specification)
+		{
+			this->SRV = SRV;
+			this->specification = specification;
+		}
+
 
 
         void Texture2D::assign()

@@ -580,6 +580,9 @@ public:
 
 	
 	void init(char* file_name, Specification const & specification);
+
+	void init(ID3D11ShaderResourceView* SRV, const Specification& specification);
+	
 	void assign();
 
 

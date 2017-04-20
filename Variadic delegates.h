@@ -82,6 +82,7 @@ namespace delegates
 		{
 			auto pArguments = static_cast<Arguments<Args...>*>(pArgs);
 			(m_pObj->*m_pMethod)(std::get<Idcs>(pArguments->m_args)...);
+			//(m_pObj->*m_pMethod)(std::forward<Args...>(std::get<Idcs>(pArguments->m_args)...));
 		}
 
 	public:
@@ -140,7 +141,7 @@ namespace delegates
 		void invoker(Indices<Idcs...>, void* pArgs)
 		{
 			auto pArguments = static_cast<Arguments<Args...>*>(pArgs);
-			m_pF(std::get<Idcs>(pArguments->m_args)...);
+			m_pF(std::forward<Args...>(std::get<Idcs>(pArguments->m_args)...));
 		}
 
 	public:

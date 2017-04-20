@@ -82,8 +82,8 @@ public:
 
 
 	void create_DSV_VP_for_depthMap(
-		UINT Width = 1024,
-		UINT Height = 1024,
+		UINT Width = 2048,
+		UINT Height = 2048,
 		UINT MipLevels = 1,
 		UINT ArraySize = 1,
 		UINT MultisamplingCount = 1,
@@ -110,9 +110,6 @@ public:
 
 
 	void OMbind_DSV_RTV_VP();
-
-
-
 };
 
 

@@ -108,16 +108,12 @@ void ShadowMap::create_DSV_SRV_VP_for_depthMap(
 	// View saves a reference to the texture so we can release our reference
 	ReleaseCOM(depthMap);
 
-
-
-
 	VP.TopLeftX = 0;
 	VP.TopLeftY = 0;
 	VP.Width = Width;
 	VP.Height = Height;
 	VP.MinDepth = 0.0f;
 	VP.MaxDepth = 1.0f;
-
 }
 
 void ShadowMap::OMbind_DSV_nullRTV_VP()
@@ -130,9 +126,6 @@ void ShadowMap::OMbind_DSV_nullRTV_VP()
 
 	d3dDeviceContext->OMSetRenderTargets(1, RTVs, DSV);
 
-	
-
-
 	// clearing
 
 	/*
@@ -140,15 +133,11 @@ void ShadowMap::OMbind_DSV_nullRTV_VP()
 	4 - value to wich stencil buffer will be set
 	*/													            //3  //4	
 	d3dDeviceContext->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
 }
 
 
 
 //----------------------------------
-
-
-
 
 void ShadowMap::create_DSV_VP_for_depthMap(
 	UINT Width,
@@ -162,12 +151,9 @@ void ShadowMap::create_DSV_VP_for_depthMap(
 	UINT MiscFlags // Optional flags, which do not apply to the depth/stencil buffer, so set to 0
 	)
 {
-
-
 	//
 	// Создание depthMap как двумерной текстуры (ID3D11Texture2D * depthMap)
 	//
-
 
 	// описатель depth/stencil буфера
 	D3D11_TEXTURE2D_DESC texdesc;
@@ -223,15 +209,12 @@ void ShadowMap::create_DSV_VP_for_depthMap(
 	ReleaseCOM(depthMap);
 
 
-
-
 	VP.TopLeftX = 0;
 	VP.TopLeftY = 0;
 	VP.Width = Width;
 	VP.Height = Height;
 	VP.MinDepth = 0.0f;
 	VP.MaxDepth = 1.0f;
-
 }
 
 
@@ -251,7 +234,6 @@ void ShadowMap::create_RTV_SRV(
 	UINT MiscFlags // Optional flags, which do not apply to the depth/stencil buffer, so set to 0
 	)
 {
-
 	// Создание RTV и SRV для depthMap
 
 	ID3D11Texture2D* tex;
@@ -266,25 +248,15 @@ void ShadowMap::create_RTV_SRV(
 	texdesc.SampleDesc.Count = MultisamplingCount; // multisampling must match swap chain values
 	texdesc.SampleDesc.Quality = MultisamplingQuality; // multisampling must match swap chain values
 	texdesc.Usage = Usage; // Определяет как текстура будет использоваться - чтение/запись, и чем будет использоваться - CPU/GPU; D3D11_USAGE_DEFAULT - полный доступ только для GPU
-
 	texdesc.BindFlags = BindFlags; // flags, specifying where the resource will be bound to the pipeline (in which ways it'll be interpreted) - use in conjunction with Format
 	texdesc.CPUAccessFlags = CPUAccessFlags;
-
 	texdesc.MiscFlags = MiscFlags;
 
-
 	d3dDevice->CreateTexture2D(&texdesc, 0, &tex);
-
-
-
 	d3dDevice->CreateRenderTargetView(tex, 0, &RTV);
 	d3dDevice->CreateShaderResourceView(tex, 0, &SRV);
 
-
-
 	ReleaseCOM(tex);
-
-
 }
 
 

@@ -54,3 +54,11 @@ Temporary Items
 *.suo
 *.sdf
 *.opensdf
+*.svn-base
+*.db
+Протосфера.VC.VC.opendb
+*.iobj
+Протосфера_Releaser.ipdb
+*.lib
+.svn/entries
+.svn/format

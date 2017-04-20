@@ -165,8 +165,6 @@ float CalcShadowFactor(float4 PointInLS_H)
 	// Depth in NDC space (0..1)
 	float depth = PointInLS_H.z;
 
-	
-	
 	// Sample shadow map to get nearest depth to scene point (uv)
 	float s0 = depthMap.Sample(sm_Shadow, PointInLS_H.xy).r;
 	float s1 = depthMap.Sample(sm_Shadow, PointInLS_H.xy + float2(DEPTHMAP_DX, 0)).r;
@@ -295,8 +293,10 @@ float4 PS(PS_IN pIn): SV_TARGET
 
 	litColor.a= diffuse.a;
 
-	   
-	return litColor;
+    //return float4(pIn.PointInLS_H.xyz / pIn.PointInLS_H.w, 1.f);
+    //return depthMap.Sample(sm_Trilinear, pIn.texC.xy);
+    return litColor;
+    //return pIn.normalWV;
 
 					
 

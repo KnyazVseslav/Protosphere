@@ -60,14 +60,10 @@ public:
 
     string stats;
 
-
-    float theta;
-    float phi;
-
-    XMVECTOR EyePos;
+	float phi;
+	float theta;
+	XMVECTOR EyePos;
     float radius;
-
-        
 };
 
 XMVECTOR 
@@ -121,6 +117,8 @@ namespace fx
     
     ShaderSystem RenderFX;
     ShaderSystem DepthMapBuildFX;
+
+	ShaderSystem DrawDepthMapFX;
     
     Effect11 TexFX;
     Effect11 ShadowFX;
@@ -149,6 +147,8 @@ namespace objects
      Sphere sphere2("sphere2");
 
      Cloth cloth2("cloth2");
+
+	 Grid plane("plane");
 
 
 }
@@ -230,6 +230,7 @@ using scene::reflector_types::VS_build_depthmap::VS_build_depthmap_cbPerFrame;
 
 using scene::fx::RenderFX;
 using scene::fx::DepthMapBuildFX;
+using scene::fx::DrawDepthMapFX;
 
 using namespace scene::objects;
 
@@ -237,7 +238,8 @@ using namespace scene::objects;
 
 
 
-Application::Application(): theta(0.0f*Pi), phi(0.0f*Pi), radius(20.0f)
+Application::Application(): phi(0.f*Pi), theta(0.f*Pi), radius(20.0f)
+//Application::Application(): theta(1.f*Pi), phi(0.5f*Pi), radius(20.0f)
 {
 
         View= DirectX::XMMatrixIdentity();
@@ -274,62 +276,78 @@ void Application::InitScene()
     //
 
 
-
     // DepthMapBuildFX
 
-        DepthMapBuildFX.Init("DepthMapBuildFX", d3d->Device, d3d->DeviceContext);
+    DepthMapBuildFX.Init("DepthMapBuildFX", d3d->Device, d3d->DeviceContext);
 
-        // VS
-        DepthMapBuildFX.AddShader("VS", VertexShader, "shaders\\HLSL\\build_depthmap_VS.hlsl", "VS", "vs_5_0");
+    // VS
+    DepthMapBuildFX.AddShader("VS", VertexShader, "shaders\\HLSL\\build_depthmap_VS.hlsl", "VS", "vs_5_0");
     
-        DepthMapBuildFX.shaders["VS"].AddConstantBuffer<VS_build_depthmap_cbPerFrame>("vs_build_depthmap_cbPerFrame", 0); // b0
+    DepthMapBuildFX.shaders["VS"].AddConstantBuffer<VS_build_depthmap_cbPerFrame>("vs_build_depthmap_cbPerFrame", 0); // b0
 
-        // PS
-        DepthMapBuildFX.AddShader("PS", PixelShader, "shaders\\HLSL\\build_depthmap_PS.hlsl", "PS", "ps_5_0");
+    // PS
+    DepthMapBuildFX.AddShader("PS", PixelShader, "shaders\\HLSL\\build_depthmap_PS.hlsl", "PS", "ps_5_0");
 
 
-        // callback-функции (выполняются до рендера и после него)
+    // callback-функции (выполняются до рендера и после него)
 
-        DepthMapBuildFX.AddBeginFunction("OMbind_DSV_nullRTV_VP", scene::shadow_mapping::depthMap, &ShadowMap::OMbind_DSV_nullRTV_VP);
-        DepthMapBuildFX.AddEndFunction("Reset_RTV_DSV_VP", d3d, &D3D::Reset_RTV_DSV_VP, ClientWidth, ClientHeight);
+    DepthMapBuildFX.AddBeginFunction("OMbind_DSV_nullRTV_VP", scene::shadow_mapping::depthMap, &ShadowMap::OMbind_DSV_nullRTV_VP);
+	//DepthMapBuildFX.AddBeginFunction("OMbind_DSV_RTV_VP", scene::shadow_mapping::depthMap, &ShadowMap::OMbind_DSV_RTV_VP);
+    DepthMapBuildFX.AddEndFunction("Reset_RTV_DSV_VP", d3d, &D3D::Reset_RTV_DSV_VP, ClientWidth, ClientHeight);
+
+
+	// DrawDepthMapFX
+
+	DrawDepthMapFX.Init("DrawDepthMapFX", d3d->Device, d3d->DeviceContext);
+
+	// VS
+	DrawDepthMapFX.AddShader("VS", VertexShader, "shaders\\HLSL\\draw_depthmap_VS.hlsl", "VS", "vs_5_0");
+
+	DrawDepthMapFX.shaders["VS"].AddConstantBuffer<XMMATRIX>("vs_draw_depthmap", 0); // b0
+
+	// PS
+	DrawDepthMapFX.AddShader("PS", PixelShader, "shaders\\HLSL\\draw_depthmap_PS.hlsl", "PS", "ps_5_0");
+	DrawDepthMapFX.shaders["PS"].AddTexture2D(scene::shadow_mapping::depthMap->Get_SRV(), 0);
 
 
 
     // RenderFX
 
-        RenderFX.Init("RenderFX", d3d->Device, d3d->DeviceContext);
+    RenderFX.Init("RenderFX", d3d->Device, d3d->DeviceContext);
 
     
-        // VS
-        RenderFX.AddShader("VS", VertexShader, "shaders\\HLSL\\render_VS.hlsl", "VS", "vs_5_0");
+    // VS
+    RenderFX.AddShader("VS", VertexShader, "shaders\\HLSL\\render_VS.hlsl", "VS", "vs_5_0");
         
-        RenderFX.shaders["VS"].AddConstantBuffer<VS_cbPerScene>("vs_cbPerScene", 0); // b0
-        RenderFX.shaders["VS"].AddConstantBuffer<VS_cbPerObject>("vs_cbPerObject", 1); // b1
+    RenderFX.shaders["VS"].AddConstantBuffer<VS_cbPerScene>("vs_cbPerScene", 0); // b0
+    RenderFX.shaders["VS"].AddConstantBuffer<VS_cbPerObject>("vs_cbPerObject", 1); // b1
+
+    // PS
+    RenderFX.AddShader("PS", PixelShader, "shaders\\HLSL\\render_PS.hlsl", "PS", "ps_5_0");
+
+    RenderFX.shaders["PS"].AddConstantBuffer<PS_cbPerFrame>("ps_cbPerFrame", 0); // b0
+    RenderFX.shaders["PS"].AddTexture2D(scene::shadow_mapping::depthMap->Get_SRV(), 0);
 
 
-        // PS
-        RenderFX.AddShader("PS", PixelShader, "shaders\\HLSL\\render_PS.hlsl", "PS", "ps_5_0");
+	//		
+	//Сцена
+	//
+	scene::objects::plane.Init("plane", d3d->Device, d3d->DeviceContext, et_ShaderSystem);
+	scene::objects::plane.ConstructGeometry(10, 10, 1);
+	scene::objects::plane.Position = XMVectorSet(-10, 0, 0, 0);
 
-        RenderFX.shaders["PS"].AddConstantBuffer<PS_cbPerFrame>("ps_cbPerFrame", 0); // b0
-        RenderFX.shaders["PS"].AddTexture2D(scene::shadow_mapping::depthMap->Get_SRV(), 0);		
+	// ткань
 
-
-//		
-//Сцена
-//
-
-
-    // ткань
-
-        scene::objects::cloth2.Init("cloth2", d3d->Device, d3d->DeviceContext, et_ShaderSystem);
-        scene::objects::cloth2.ConstructGeometry(10, 10, 1);		
-        scene::objects::cloth2.m = 3;
+    scene::objects::cloth2.Init("cloth2", d3d->Device, d3d->DeviceContext, et_ShaderSystem);
+    scene::objects::cloth2.ConstructGeometry(10, 10, 1);		
+    scene::objects::cloth2.m = 3;
         
-        scene::objects::cloth2.DiffuseTexture.init("resources\\textures\\cloth.DDS", { { "RenderFX" }, { "PS" }, { 1 }, { 1 } });
+    scene::objects::cloth2.DiffuseTexture.init("resources\\textures\\cloth.DDS", { { "RenderFX" }, { "PS" }, { 1 }, { 1 } });
+	//cene::objects::cloth2.DiffuseTexture.init( scene::shadow_mapping::depthMap->Get_SRV(), { { "RenderFX" },{ "PS" },{ 1 },{ 1 } } );
 
-        scene::objects::cloth2.VertexInputLayoutCreate(RenderFX.shaders["VS"].get_byte_code());
+    scene::objects::cloth2.VertexInputLayoutCreate(RenderFX.shaders["VS"].get_byte_code());
         
-        scene::objects::cloth2.Position= XMVectorSet(0, 0, 0, 0);
+    scene::objects::cloth2.Position= XMVectorSet(0, 0, 0, 0);
 
 
     // сфера
@@ -352,18 +370,16 @@ void Application::InitScene()
     
     // Наполнение группы сцены объектами и эффектами
     
-    Scene.vg_objects_groups.add("Sphere_Plane_Group");
-
+	Scene.vg_objects_groups.add("Sphere_Plane_Group");
     Scene.vg_objects_groups[0].effects.add(DepthMapBuildFX);
     Scene.vg_objects_groups[0].effects.add(RenderFX);
-    
-
-    
     Scene.vg_objects_groups[0].objects.add(cloth2);
     Scene.vg_objects_groups[0].objects.add(sphere2);
-    
-    
-
+   /*
+	Scene.vg_objects_groups.add("depthMap_outp");
+	Scene.vg_objects_groups[1].effects.add(DrawDepthMapFX);
+	Scene.vg_objects_groups[1].objects.add(plane);
+	*/
 
     // Effect11 для инфовекторов
 
@@ -374,6 +390,7 @@ void Application::InitScene()
 
     scene::light_sources::Spot.InitFromExistingData(Spot, d3d->Device, d3d->DeviceContext, scene::fx::TexFX.GetEffect(), scene::fx::TexFX.GetTechnique());
     scene::light_sources::Spot.Position= XMVectorZero();
+	//scene::light_sources::Spot.Position = XMVectorSet(0, radius / 2, -radius, 1);
 
 
     // камера
@@ -384,11 +401,10 @@ void Application::InitScene()
     // куб для визуализации источника света
 
     scene::objects::box.InitFromExistingData(d3d->Device, d3d->DeviceContext, scene::fx::TexFX.GetEffect(), scene::fx::TexFX.GetTechnique());
-
     scene::objects::box.InfoVectorsConstruct(ObjectSpace, NULL);
-
     scene::objects::box.ConstructGeometry();
-    scene::objects::box.Position= XMVectorSet(0, 0, 10, 0);
+	scene::objects::box.Position = XMVectorZero();
+	//scene::objects::box.Position= XMVectorSet(0, radius / 2, -radius, 0);
 
 
     // инфовекторы
@@ -413,27 +429,19 @@ void Application::InitScene()
     indcs.push_back(4);
     indcs.push_back(5);
     
-    
     scene::objects::infoV.Construct(v, indcs);	
-
-
 }
 
 
 void Application::UpdateScene(float dt)
 {
-
     D3DApplication::UpdateScene(dt);
-
-
 
     // камера
 
     scene::objects::camera.Observe(hWnd, aim.x, aim.y, ClientWidth/2, ClientHeight/2, 1e-3*1.8);
 
-
-    float p;
-
+	float p;
     static float vel = 1e2 / 5; // velocity factor 
     static float ls_rotation_vel = 1e-2;
 
@@ -521,163 +529,137 @@ void Application::UpdateScene(float dt)
     if(GetAsyncKeyState(VK_DOWN) & 0x8000)	radius-= p;
 
     
-    
     EyePos.m128_f32[0] =  radius*sinf(phi)*sinf(theta);
-    EyePos.m128_f32[2] = -radius*sinf(phi)*cosf(theta);
-    EyePos.m128_f32[1] =  radius*cosf(phi);
+	EyePos.m128_f32[1] =  radius*cosf(phi);
+	EyePos.m128_f32[2] =  radius*sinf(phi)*cosf(theta);
     
     scene::objects::box.Position= EyePos;
-
-
-    mLookAt= XMMatrixLookAtLH(EyePos,
-        XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-
-    
+    mLookAt= XMMatrixLookAtLH(EyePos, XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+	//mLookAt = XMMatrixLookAtLH(scene::light_sources::Spot.Position, -EyePos, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 }
 
 
 void Application::OnResize()
 {
-
     D3DApplication::OnResize();
-
     float aspectratio = (float)ClientWidth/ClientHeight;
-
     Proj= XMMatrixPerspectiveFovLH(0.25*Pi, aspectratio, 0.5f, 1e3f);
-
 }
 
 
 void Application::RenderScene()
 {
-
     D3DApplication::RenderScene();
-
-    
-
 
     //
     // Установка параметров сцены
     //
 
-
     View = XMLoadFloat4x4(&scene::objects::camera.ObjectSpace);
-        
-        WVP = View*Proj;
-
-
+    WVP = View*Proj;
 
     // Обновление константных буферов
 
-        VS_cbPerScene vs_cbPerScene;
+    VS_cbPerScene vs_cbPerScene;
 
-        vs_cbPerScene.WV= View;
-        vs_cbPerScene.View= View;
-        vs_cbPerScene.LightWVP= scene::shadow_mapping::LightWVP;
-
-
-        VS_cbPerObject vs_cbPerObject;
-
-        vs_cbPerObject.LWVP= WVP;
-        vs_cbPerObject.World= XMMatrixIdentity();
-        vs_cbPerObject.TexMtx= XMMatrixIdentity();		
+    vs_cbPerScene.WV= View;
+    vs_cbPerScene.View= View;
+    vs_cbPerScene.LightWVP= scene::shadow_mapping::LightWVP;
 
 
+    VS_cbPerObject vs_cbPerObject;
 
-        PS_cbPerFrame ps_cbPerFrame;
+    vs_cbPerObject.LWVP= WVP;
+    vs_cbPerObject.World= XMMatrixIdentity();
+    vs_cbPerObject.TexMtx= XMMatrixIdentity();		
 
-        ps_cbPerFrame.WV= View;
-        ps_cbPerFrame.LightDir= scene::light_sources::Spot.Direction;
-        ps_cbPerFrame.LightPos= scene::light_sources::Spot.Position;
-        ps_cbPerFrame.pos_test2= scene::light_sources::Spot.Position;
-        ps_cbPerFrame.light= scene::light_sources::Spot;
-        ps_cbPerFrame.light2= scene::light_sources::Spot;
-        ps_cbPerFrame.EyePosW= scene::objects::camera.Position;
-        ps_cbPerFrame.L_ambient= scene::light_sources::Spot.ambient;
-        ps_cbPerFrame.L_diffuse= scene::light_sources::Spot.diffuse;
-        ps_cbPerFrame.L_specular= scene::light_sources::Spot.specular;
-        ps_cbPerFrame.LightSourceType= scene::light_sources::Spot.LSType;
+
+
+    PS_cbPerFrame ps_cbPerFrame;
+
+    ps_cbPerFrame.WV= View;
+    ps_cbPerFrame.LightDir= scene::light_sources::Spot.Direction;
+    ps_cbPerFrame.LightPos= scene::light_sources::Spot.Position;
+    ps_cbPerFrame.pos_test2= scene::light_sources::Spot.Position;
+    ps_cbPerFrame.light= scene::light_sources::Spot;
+    ps_cbPerFrame.light2= scene::light_sources::Spot;
+    ps_cbPerFrame.EyePosW= scene::objects::camera.Position;
+    ps_cbPerFrame.L_ambient= scene::light_sources::Spot.ambient;
+    ps_cbPerFrame.L_diffuse= scene::light_sources::Spot.diffuse;
+    ps_cbPerFrame.L_specular= scene::light_sources::Spot.specular;
+    ps_cbPerFrame.LightSourceType= scene::light_sources::Spot.LSType;
 
     
+	// записываем поле КБ в поле content
+    *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["RenderFX"].shaders["VS"].constant_buffers["vs_cbPerScene"]= &vs_cbPerScene;
+    *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["RenderFX"].shaders["VS"].constant_buffers["vs_cbPerObject"]= &vs_cbPerObject;
+    *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["RenderFX"].shaders["PS"].constant_buffers["ps_cbPerFrame"]= &ps_cbPerFrame;
 
-        *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["RenderFX"].shaders["VS"].constant_buffers["vs_cbPerScene"]= &vs_cbPerScene;
-        *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["RenderFX"].shaders["VS"].constant_buffers["vs_cbPerObject"]= &vs_cbPerObject;
-        *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["RenderFX"].shaders["PS"].constant_buffers["ps_cbPerFrame"]= &ps_cbPerFrame;
+	//*Scene.vg_objects_groups["depthMap_outp"].effects["DrawDepthMapFX"].shaders["VS"].constant_buffers["vs_draw_depthmap"] = &WVP;
 
         
-        VS_build_depthmap_cbPerFrame vs_build_depthmap_cbPerFrame;
-        vs_build_depthmap_cbPerFrame.LightWVP= scene::light_sources::Spot.GetTransformToObjectSpace()*scene::shadow_mapping::LightVolumeProj;
+    VS_build_depthmap_cbPerFrame vs_build_depthmap_cbPerFrame;
+    vs_build_depthmap_cbPerFrame.LightWVP= scene::light_sources::Spot.GetTransformToObjectSpace()*scene::shadow_mapping::LightVolumeProj;
 
-        *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["DepthMapBuildFX"].shaders["VS"].constant_buffers["vs_build_depthmap_cbPerFrame"] = &vs_build_depthmap_cbPerFrame;
+    *Scene.vg_objects_groups["Sphere_Plane_Group"].effects["DepthMapBuildFX"].shaders["VS"].constant_buffers["vs_build_depthmap_cbPerFrame"] = &vs_build_depthmap_cbPerFrame;
 
 
-        Scene.vg_objects_groups[0].objects[0]->rasterisation_state.FillMode = fill_mode;
-        Scene.vg_objects_groups[0].objects[1]->rasterisation_state.FillMode = fill_mode;
+    Scene.vg_objects_groups[0].objects[0]->rasterisation_state.FillMode = fill_mode;
+    Scene.vg_objects_groups[0].objects[1]->rasterisation_state.FillMode = fill_mode;
         
 
-        // работа с источником света
+    // работа с источником света
 
-        scene::light_sources::Spot.Position = scene::objects::box.Position;
-        scene::light_sources::Spot.Direction = -scene::objects::box.Position;
+    scene::light_sources::Spot.Position = scene::objects::box.Position;
+    scene::light_sources::Spot.Direction = -scene::objects::box.Position;
+	
+	////scene::light_sources::Spot.Direction = -EyePos;
 
-        scene::shadow_mapping::LightWVP = scene::light_sources::Spot.GetTransformToObjectSpace()*scene::shadow_mapping::LightVolumeProj;
-
-
-
-    // симуляция ткани
-
-        XMVECTOR Force = XMVectorSet(0, 0, 0, 0);
-
-        isBounce = false;
-        isApplyGravity = true;
-
-        float dt = 1;
+    scene::shadow_mapping::LightWVP = scene::light_sources::Spot.GetTransformToObjectSpace()*scene::shadow_mapping::LightVolumeProj;
 
 
-        CollideClothWithBall(Scene.vg_objects_groups[0].objects["cloth2"], Scene.vg_objects_groups[0].objects["sphere2"], isApplyGravity, dt);
+	// симуляция ткани
+
+    XMVECTOR Force = XMVectorSet(0, 0, 0, 0);
+    isBounce = false;
+    isApplyGravity = true;
+    float dt = 1;
+    CollideClothWithBall(Scene.vg_objects_groups[0].objects["cloth2"], Scene.vg_objects_groups[0].objects["sphere2"], isApplyGravity, dt);
 
 
+	// отрисовка основной сцены
 
-    // отрисовка основной сцены
-
-        Scene.Render();
-
+	Scene.Render();
 
 
-    // вывод инфографики
+	// вывод инфографики
 
-         scene::objects::box.Render(WVP, D3D11_FILL_WIREFRAME, 1, D3D11_CULL_NONE);
+	scene::objects::box.Render(WVP, D3D11_FILL_WIREFRAME, 1, D3D11_CULL_NONE);
 
-             vector<VertexPosColor> v;
-             XMVECTOR x, y, z;
-            
+    vector<VertexPosColor> v;
+    XMVECTOR x, y, z;
              
-             // создание геометрии инфовекторов - базис ИС
-             x= scene::objects::box.Position+XMVectorSet(mLookAt.r[0].m128_f32[0], mLookAt.r[1].m128_f32[0], mLookAt.r[2].m128_f32[0], 0);
+    // создание геометрии инфовекторов - базис ИС
+    x= scene::objects::box.Position+XMVectorSet(mLookAt.r[0].m128_f32[0], mLookAt.r[1].m128_f32[0], mLookAt.r[2].m128_f32[0], 0);
+	v.push_back(VertexPosColor(scene::objects::box.Position, RED));
+	v.push_back(VertexPosColor(x, RED));
 
-                 v.push_back(VertexPosColor(scene::objects::box.Position, RED));
-                 v.push_back(VertexPosColor(x, RED));
+    y= scene::objects::box.Position+XMVectorSet(mLookAt.r[0].m128_f32[1], mLookAt.r[1].m128_f32[1], mLookAt.r[2].m128_f32[1], 0);
+	v.push_back(VertexPosColor(scene::objects::box.Position, GREEN));
+	v.push_back(VertexPosColor(y, GREEN));
 
-             y= scene::objects::box.Position+XMVectorSet(mLookAt.r[0].m128_f32[1], mLookAt.r[1].m128_f32[1], mLookAt.r[2].m128_f32[1], 0);
+    z= scene::objects::box.Position+XMVectorSet(mLookAt.r[0].m128_f32[2], mLookAt.r[1].m128_f32[2], mLookAt.r[2].m128_f32[2], 0);
+	v.push_back(VertexPosColor(scene::objects::box.Position, BLUE));
+	v.push_back(VertexPosColor(z, BLUE));
 
-                 v.push_back(VertexPosColor(scene::objects::box.Position, GREEN));
-                 v.push_back(VertexPosColor(y, GREEN));
+	// установка геометрии инфовекторов
+	scene::objects::infoV.SetVertices(v); 
 
-             z= scene::objects::box.Position+XMVectorSet(mLookAt.r[0].m128_f32[2], mLookAt.r[1].m128_f32[2], mLookAt.r[2].m128_f32[2], 0);
-
-                 v.push_back(VertexPosColor(scene::objects::box.Position, BLUE));
-                 v.push_back(VertexPosColor(z, BLUE));
-                 
-
-                 // установка геометрии инфовекторов
-                 scene::objects::infoV.SetVertices(v); 
-
-                 // отрисовка базиса ИС
-                 scene::objects::infoV.Render(WVP, D3D11_FILL_SOLID, 1, D3D11_CULL_NONE, D3D11_PRIMITIVE_TOPOLOGY_LINELIST); 			
+	// отрисовка базиса ИС
+	scene::objects::infoV.Render(WVP, D3D11_FILL_SOLID, 1, D3D11_CULL_NONE, D3D11_PRIMITIVE_TOPOLOGY_LINELIST); 			
 
 
     d3d->SwapChain->Present(0, 0); 	 
-
 }
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,

@@ -90,24 +90,21 @@ float4 PointLight(SurfaceInfo v, LightSource L, float4 LightPos, float4 test_v, 
 	
 	// Фоновая составляющая
 	litColor += v.diffuse * L_ambient;	
+	//litColor += float4(1, 1, 1, 1) * L_ambient;
 	
 	// Если поверхность находится в поле действия источника света
 	float diffuseFactor = dot(lightVec, v.normal);
+
 	[branch]
 	if( diffuseFactor > 0.0f )
 	{
-
-
-
 		float specPower  = max(v.specular.a, 1.0f);
 		float3 toEye     = normalize(eyePos - v.pos);
 		float3 R         = reflect(-lightVec, v.normal);
 		float specFactor = pow(max(dot(R, toEye), 0.0f), 128);
-		
 		litColor += shadowFactor*diffuseFactor * v.diffuse * L_diffuse;
 		litColor += shadowFactor*specFactor * v.specular * L_specular;
 	}
-	
 
 	return litColor;
 }
@@ -121,8 +118,9 @@ float4 Spotlight(SurfaceInfo v, LightSource L, float4 LightDir, float4 LightPos,
 
 	float4 litColor_pl = PointLight(v, L, LightPos, test_v, eyePos, m, shadowFactor, L_ambient, L_diffuse, L_specular);
 		float4 litColor = litColor_pl;
+		return litColor;
 
-		
+	/*
       float4 light_pos4= LightPos;
 
 		light_pos4.w= 1;
@@ -150,7 +148,7 @@ if(dot(v.normal, Ldir) < 0)
 
 	
 	return litColor*s;
-
+	*/
 
 }
 

@@ -14,6 +14,8 @@
 #include <d3dcompiler.h> // for employement of D3DCompileFromFile wich will be accessible after unplugging legacy SDK, for now D3DX11CompileFromFile()
 #pragma comment (lib, "d3dcompiler.lib") // for employement of D3DCompileFromFile wich will be accessible after unplugging legacy SDK, for now D3DX11CompileFromFile()
 
+
+
 //#pragma comment (lib, "d3dx11.lib")
 //#pragma comment (lib, "d3dx10.lib")
 
@@ -21,25 +23,25 @@
 
 #include "modules\DDSTextureLoader\DDSTextureLoader.h"
 #if defined(DEBUG) | defined(_DEBUG)
-#pragma comment (lib, "modules\\DDSTextureLoader\\DDSTextureLoaderd.lib")
+#pragma comment (lib, "modules\\DDSTextureLoader\\DDSTextureLoader_d.lib")
 #else
-#pragma comment (lib, "modules\\DDSTextureLoader\\DDSTextureLoader.lib")
+#pragma comment (lib, "modules\\DDSTextureLoader\\DDSTextureLoader_r.lib")
 #endif
 
 
-#include "modules\FX 11\v 11.07\d3dx11effect.h"
+#include "modules\Effects11\d3dx11effect.h"
 #if defined(DEBUG) | defined(_DEBUG)
-#pragma comment (lib, "modules\\FX 11\\v 11.07\\Effects11d.lib")
+#pragma comment (lib, "modules\\Effects11\\Effects11_d.lib")
 #else
-#pragma comment (lib, "modules\\FX 11\\v 11.07\\Effects11.lib")
+#pragma comment (lib, "modules\\Effects11\\Effects11_r.lib")
 #endif
 
 
 #include "modules\dxerr\dxerr.h" // DXTrace()
 #if defined(DEBUG) | defined(_DEBUG)
-#pragma comment (lib, "modules\\dxerr\\dxerrd.lib")
+#pragma comment (lib, "modules\\dxerr\\dxerr_d.lib")
 #else
-#pragma comment (lib, "modules\\dxerr\\dxerr.lib")
+#pragma comment (lib, "modules\\dxerr\\dxerr_r.lib")
 #endif
 
 //#include "query.h"
@@ -48,9 +50,9 @@
 #include "modules\Facilities_LIB\Facilities_LIB.h"
 
 #if defined(DEBUG) | defined(_DEBUG)
-#pragma comment (lib, "modules\\Facilities_LIB\\Facilitiesd.lib") // string_facilities::pchar_to_pwchar(char* str)
+#pragma comment (lib, "modules\\Facilities_LIB\\Facilities_LIB_d.lib") // string_facilities::pchar_to_pwchar(char* str)
 #else
-#pragma comment (lib, "modules\\Facilities_LIB\\Facilities.lib")
+#pragma comment (lib, "modules\\Facilities_LIB\\Facilities_LIB_r.lib")
 #endif
 
 
@@ -59,8 +61,6 @@
 #include <d3dcommon.h>
 
 #include <vector>
-
-
 
 
 #define ReleaseCOM(x) { if(x){ (x)->Release(); (x) = 0; } }
